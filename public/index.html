@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#334a38">
+  <meta name="description" content="Un unico posto per ritrovare e aprire i progetti sul tuo Mac.">
+  <title>Progetti · Dashboard Mac</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/resources.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Vai ai progetti</a>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Dashboard Mac, pagina iniziale"><img src="/favicon.svg" alt="" width="48" height="48"><span>dashboard<span class="brand-sub">MAC / SPAZIO LOCALE</span></span></a>
+    <div class="nav-label">LA TUA LIBRERIA</div>
+    <nav id="navigation" aria-label="Libreria progetti"></nav>
+    <div class="sidebar-bottom">
+      <div class="local-note"><span class="status-dot"></span> Tutto sul tuo Mac</div>
+      <p>I tuoi progetti, dove li hai lasciati.<br>Sempre a portata di mano.</p>
+      <button id="sources-button" class="sources-button" type="button"><span data-icon="settings"></span> Cartelle di ricerca <span data-icon="arrow"></span></button>
+      <div class="machine"><span class="machine-icon" data-icon="monitor"></span><div>Il mio Mac<small>Spazio di lavoro personale</small></div></div>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div><span class="breadcrumb">Spazio di lavoro</span><span class="slash">/</span><span id="breadcrumb-current">Tutti i progetti</span></div><span class="local-badge"><span class="status-dot"></span> Locale</span></header>
+    <main id="main">
+      <div class="heading"><div><div class="eyebrow">IL TUO PUNTO DI PARTENZA</div><h1 id="page-title">Tutti i progetti<span class="title-dot">.</span></h1><p id="page-description">Meno cartelle da cercare. Più spazio per le tue idee.</p></div><button id="scan-button" class="button secondary" type="button"><span data-icon="refresh"></span><span>Aggiorna progetti</span></button></div>
+      <section id="project-overview" class="overview" aria-label="Panoramica"><div class="stat-card"><span class="stat-icon green" data-icon="layers"></span><div><span class="stat-label">Progetti trovati</span><strong id="count-all">—</strong></div><span class="stat-detail">Tutto, in un unico posto</span></div><div class="stat-card"><span class="stat-icon sand" data-icon="server"></span><div><span class="stat-label">In MAMP</span><strong id="count-mamp">—</strong></div><span class="stat-detail">La tua cartella htdocs</span></div><div class="stat-card"><span class="stat-icon lilac" data-icon="home"></span><div><span class="stat-label">Nella Home</span><strong id="count-home">—</strong></div><span class="stat-detail">I progetti sul tuo Mac</span></div></section>
+      <section id="project-library" class="library" aria-label="Ricerca progetti">
+        <div class="search-row"><div class="search-box"><span data-icon="search"></span><label class="sr-only" for="search">Cerca progetti per nome, percorso o tecnologia</label><input id="search" type="search" placeholder="Cerca un progetto, un percorso, una tecnologia…" autocomplete="off" spellcheck="false"><kbd>⌘ K</kbd></div><label class="sr-only" for="sort">Ordina progetti</label><select id="sort"><option value="modified">Modificati di recente</option><option value="name">Nome: A → Z</option><option value="opened">Aperti di recente</option></select><div class="view-switch" role="group" aria-label="Visualizzazione"><button id="grid-button" type="button" aria-label="Vista a schede" aria-pressed="true"><span data-icon="grid"></span></button><button id="list-button" type="button" aria-label="Vista elenco" aria-pressed="false"><span data-icon="list"></span></button></div></div>
+        <div class="filter-row"><div id="type-filters" class="type-filters" role="group" aria-label="Filtra per tecnologia"></div><span id="result-count" aria-live="polite"></span></div>
+        <div id="error-banner" class="error-banner" role="alert" hidden></div>
+        <div id="warnings" class="warnings" hidden></div>
+        <div id="projects" class="projects" aria-busy="true"><div class="empty-state"><div class="loading-ring"></div><h2>Mettiamo insieme i tuoi progetti</h2><p>Sto cercando nelle cartelle della Home e di MAMP.<br>La prima scansione può richiedere qualche istante.</p></div></div>
+        <footer class="library-footer"><span id="scan-info">In attesa della scansione…</span><span><span data-icon="command"></span> K per cercare al volo</span></footer>
+      </section>
+      <section id="resource-panel" aria-label="Risorse del Mac e dei progetti" hidden>
+        <div class="resource-toolbar"><span id="resource-updated" role="status">In attesa del primo campione…</span><label class="auto-refresh"><input id="resource-auto" type="checkbox" checked> Aggiorna ogni 5 s</label><button id="resource-refresh" class="button secondary" type="button">Aggiorna ora</button></div>
+        <div id="resource-error" class="error-banner" role="alert" hidden></div>
+        <div id="resource-warnings" class="warnings" hidden></div>
+        <div id="system-resources" class="resource-summary"><div class="empty-state"><div class="loading-ring"></div><p>Lettura delle risorse del Mac…</p></div></div>
+        <section class="resource-section" aria-labelledby="project-resources-title"><div class="resource-section-heading"><div><h2 id="project-resources-title">Risorse per progetto</h2><p>Spazio su disco e processi associati alle cartelle dei tuoi progetti.</p></div><button id="disk-refresh" class="button secondary" type="button">Calcola spazio progetti</button></div>
+          <div id="disk-progress" class="disk-progress" role="status">Lo spazio include dipendenze, cache e file nascosti.</div>
+          <div class="resource-controls"><label class="sr-only" for="resource-search">Cerca un progetto nelle risorse</label><input id="resource-search" type="search" placeholder="Filtra per nome o percorso…"><label class="sr-only" for="resource-sort">Ordina risorse</label><select id="resource-sort"><option value="cpu">CPU: consumo maggiore</option><option value="memory">RAM: consumo maggiore</option><option value="disk">Disco: spazio maggiore</option><option value="name">Nome: A → Z</option></select><label class="active-filter"><input id="resource-active" type="checkbox"> Con processi associati</label></div>
+          <div class="resource-table-wrap"><table class="resource-table"><caption class="sr-only">Consumi e spazio dei progetti indicizzati</caption><thead><tr><th scope="col">Progetto</th><th scope="col">Processi</th><th scope="col" title="100% corrisponde a un core; può superare 100%">CPU / core</th><th scope="col" title="Memoria residente dei processi associati">RAM (RSS)</th><th scope="col">Su disco</th></tr></thead><tbody id="project-resource-rows"><tr><td colspan="5">Caricamento delle risorse…</td></tr></tbody></table></div>
+          <p class="resource-note">CPU dei processi: 100% equivale a un core. La RAM è la somma della memoria residente (RSS) e può contare pagine condivise più volte. Sono associati i processi con cartella di lavoro nel progetto e i loro discendenti: l’assenza di processi associati non significa che il sito sia spento.</p>
+        </section>
+        <div class="process-panels"><section class="resource-section" aria-labelledby="shared-title"><div class="resource-section-heading"><div><h2 id="shared-title">Servizi condivisi</h2><p>Apache, PHP-FPM e database. Consumi non ripartiti tra i siti.</p></div></div><div id="shared-processes"></div></section><section class="resource-section" aria-labelledby="top-title"><div class="resource-section-heading"><div><h2 id="top-title">Processi del Mac</h2><p>I primi 12 per consumo di CPU, poi per memoria.</p></div></div><div id="top-processes"></div></section></div>
+      </section>
+    </main>
+  </div>
+  <div id="toast" role="status" hidden></div>
+  <dialog id="sources-dialog" aria-labelledby="sources-title"><div class="dialog-header"><div><div class="eyebrow">IL TUO SPAZIO</div><h2 id="sources-title">Dove cerchiamo</h2></div><button class="icon-button close-dialog" aria-label="Chiudi" type="button"><span data-icon="close"></span></button></div><p class="dialog-intro">Una vista unica, a partire dalle tue cartelle.</p><div id="sources-list"></div><div class="dialog-note">Le cartelle nascoste, le dipendenze e le cache sono escluse. I collegamenti simbolici non vengono seguiti e i file dei progetti restano al loro posto.</div><button class="button primary close-dialog" type="button">Perfetto</button></dialog>
+  <dialog id="url-dialog" aria-labelledby="url-title"><form id="url-form"><div class="dialog-header"><div><div class="eyebrow">APERTURA RAPIDA</div><h2 id="url-title">Collega al browser</h2></div><button class="icon-button close-dialog" aria-label="Chiudi" type="button"><span data-icon="close"></span></button></div><p id="url-project-name" class="dialog-intro"></p><label for="project-url">Indirizzo del progetto</label><input id="project-url" type="url" placeholder="http://localhost:3000" required><p class="field-hint">Usa l’indirizzo con cui apri il progetto. Il suo server deve essere già avviato.</p><div class="dialog-actions"><button class="button secondary close-dialog" type="button">Annulla</button><button class="button primary" type="submit">Salva collegamento</button></div></form></dialog>
+</body>
+</html>

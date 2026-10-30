@@ -1,0 +1,15 @@
+{
+  "roots": [
+    { "id": "mamp", "label": "MAMP", "path": "/Applications/MAMP/htdocs", "depth": 2, "includeChildren": true },
+    { "id": "home", "label": "Home", "path": "~", "depth": 4, "includeChildren": false }
+  ],
+  "exclude": [
+    "node_modules", "vendor", "Library", "Applications", "Pictures", "Music", "Movies",
+    "Pods", "DerivedData", "build", "dist",
+    "coverage", "__pycache__", "venv", "env", "target", "storage", "cache", "Cache",
+    "Caches", "uploads", "wp-admin", "wp-includes", "wp-content", "Backups.backupdb"
+  ],
+  "maxDirectories": 12000,
+  "mampBaseUrl": "http://localhost",
+  "projectUrls": {}
+}

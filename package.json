@@ -1,0 +1,14 @@
+{
+  "name": "dashboard-mac",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Trova e apri i progetti sul tuo Mac, in locale.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:http": "DASHBOARD_HTTP_TEST=1 node --test test/*.test.mjs"
+  }
+}

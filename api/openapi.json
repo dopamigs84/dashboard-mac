@@ -1,0 +1,675 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Dashboard Mac — API locale",
+    "version": "1.0.0",
+    "description": "Servizio su 127.0.0.1. Host e Origin verificati; nessun CORS. Il token di sessione si ottiene con GET /api/session. Nessun file di progetto viene modificato. Le scansioni concorrenti condividono lo stesso lavoro."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:4317"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Dashboard-Token"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "Project": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "path",
+          "rootId",
+          "type",
+          "modifiedAt",
+          "git",
+          "url"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "rootId": {
+            "type": "string"
+          },
+          "rootLabel": {
+            "type": "string"
+          },
+          "displayPath": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "modifiedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "git": {
+            "type": "boolean"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "Catalog": {
+        "type": "object",
+        "required": [
+          "projects",
+          "roots",
+          "warnings",
+          "scannedAt",
+          "visited",
+          "durationMs"
+        ],
+        "properties": {
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          },
+          "roots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "label",
+                "path"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "depth": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scannedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "visited": {
+            "type": "integer"
+          },
+          "durationMs": {
+            "type": "integer"
+          }
+        }
+      },
+      "Resources": {
+        "type": "object",
+        "required": [
+          "sampledAt",
+          "system",
+          "projects",
+          "sharedServices",
+          "topProcesses",
+          "diskScan",
+          "warnings"
+        ],
+        "properties": {
+          "sampledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "system": {
+            "type": "object",
+            "required": [
+              "cpuPercent",
+              "logicalCores",
+              "memory",
+              "disk"
+            ],
+            "properties": {
+              "cpuPercent": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "logicalCores": {
+                "type": "integer"
+              },
+              "memory": {
+                "type": "object",
+                "required": [
+                  "totalBytes",
+                  "usedBytes",
+                  "availableBytes",
+                  "compressedBytes",
+                  "swapUsedBytes",
+                  "method"
+                ],
+                "properties": {
+                  "totalBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "usedBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "availableBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "compressedBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "swapUsedBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "method": {
+                    "enum": [
+                      "vm_stat-estimate",
+                      "total-minus-free"
+                    ]
+                  }
+                }
+              },
+              "disk": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "totalBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "usedBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  },
+                  "availableBytes": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "cpuPercent",
+                "rssBytes",
+                "processCount",
+                "processes",
+                "attribution",
+                "disk"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "cpuPercent": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "rssBytes": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "processCount": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "processes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "pid",
+                      "name",
+                      "cpuPercent",
+                      "rssBytes"
+                    ],
+                    "properties": {
+                      "pid": {
+                        "type": "integer"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "cpuPercent": {
+                        "type": "number"
+                      },
+                      "rssBytes": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "attribution": {
+                  "enum": [
+                    "cwd-and-descendants",
+                    "unavailable"
+                  ]
+                },
+                "disk": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "bytes",
+                    "measuredAt",
+                    "error"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "idle",
+                        "pending",
+                        "complete",
+                        "error"
+                      ]
+                    },
+                    "bytes": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0
+                    },
+                    "measuredAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "error": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "sharedServices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "pid",
+                "name",
+                "cpuPercent",
+                "rssBytes"
+              ],
+              "properties": {
+                "pid": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "cpuPercent": {
+                  "type": "number"
+                },
+                "rssBytes": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "topProcesses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "pid",
+                "name",
+                "cpuPercent",
+                "rssBytes"
+              ],
+              "properties": {
+                "pid": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "cpuPercent": {
+                  "type": "number"
+                },
+                "rssBytes": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "diskScan": {
+            "type": "object",
+            "required": [
+              "running",
+              "completed",
+              "total"
+            ],
+            "properties": {
+              "running": {
+                "type": "boolean"
+              },
+              "completed": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Richiesta non valida (400), accesso negato (403), progetto assente (404), payload eccessivo (413), tipo non JSON (415), metodo non supportato (405) o errore locale (500).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "session": []
+    }
+  ],
+  "paths": {
+    "/api/session": {
+      "get": {
+        "operationId": "getSession",
+        "security": [],
+        "summary": "Ottiene token, versione e disponibilità di VS Code",
+        "responses": {
+          "200": {
+            "description": "Sessione locale",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "token",
+                    "version",
+                    "vscode"
+                  ],
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "vscode": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/projects": {
+      "get": {
+        "operationId": "listProjects",
+        "summary": "Restituisce l'ultimo catalogo; effettua la prima scansione se necessario",
+        "responses": {
+          "200": {
+            "description": "Catalogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Catalog"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/scan": {
+      "post": {
+        "operationId": "scanProjects",
+        "summary": "Rilegge config.json e aggiorna il catalogo",
+        "responses": {
+          "200": {
+            "description": "Catalogo aggiornato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Catalog"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/open": {
+      "post": {
+        "operationId": "openProject",
+        "summary": "Apre una cartella già indicizzata in Finder o VS Code",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "app"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "app": {
+                    "type": "string",
+                    "enum": [
+                      "finder",
+                      "vscode"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comando di apertura accettato da macOS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/resources": {
+      "get": {
+        "operationId": "getResources",
+        "summary": "CPU, memoria e disco del Mac; consumi associabili ai progetti",
+        "description": "Campioni conservati 5 secondi; richieste concorrenti condividono il lavoro. CPU globale 0–100; CPU processi 100% per core, anche oltre 100%. RAM processi: somma RSS, può contare pagine condivise. Associazione cwd più discendenti; servizi condivisi esclusi. Valori null e avvisi quando non leggibili. Dimensioni cartelle calcolate separatamente con POST /api/resources/disk. Nessun argomento della riga di comando viene restituito.",
+        "responses": {
+          "200": {
+            "description": "Metriche e limitazioni",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Resources"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/resources/disk": {
+      "post": {
+        "operationId": "measureProjectDisk",
+        "summary": "Avvia in background il calcolo dello spazio allocato dei progetti",
+        "description": "Solo progetti indicizzati. Include dipendenze, cache e file nascosti, senza seguire symlink. Due misurazioni simultanee, timeout 30 secondi ciascuna. Riutilizza un lavoro già attivo; altrimenti ricalcola tutto. Risultati parziali ed errori in GET /api/resources.",
+        "responses": {
+          "202": {
+            "description": "Avviato o già in corso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "running",
+                    "completed",
+                    "total"
+                  ],
+                  "properties": {
+                    "running": {
+                      "type": "boolean"
+                    },
+                    "completed": {
+                      "type": "integer"
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    }
+  }
+}
