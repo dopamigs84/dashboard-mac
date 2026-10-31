@@ -21,6 +21,10 @@ const assets = new Map([
   ['/projects.js', ['projects.js', 'text/javascript; charset=utf-8']],
   ['/style.css', ['style.css', 'text/css; charset=utf-8']],
   ['/favicon.svg', ['favicon.svg', 'image/svg+xml']],
+  ['/manifest.webmanifest', ['manifest.webmanifest', 'application/manifest+json; charset=utf-8']],
+  ['/icon-192.png', ['icon-192.png', 'image/png']],
+  ['/icon-512.png', ['icon-512.png', 'image/png']],
+  ['/install.js', ['install.js', 'text/javascript; charset=utf-8']],
 ]);
 const fail = (status, message) => Object.assign(new Error(message), { status });
 

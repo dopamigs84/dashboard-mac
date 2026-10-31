@@ -142,6 +142,7 @@ svg { width: 16px; height: 16px; image-rendering: pixelated; }
 .topbar { height: 56px; padding: 0 32px; background: #f1efd5; border-top: 2px solid #fffce9; border-bottom: 2px solid var(--edge); box-shadow: 0 2px #a4ad8e; color: #35482f; font-size: 11px; gap: 15px; }
 .topbar::after { content: ''; flex: 1; order: 1; height: 15px; margin: 0 7px; background: repeating-linear-gradient(to bottom, #899579 0 1px, transparent 1px 3px); opacity: .7; }
 .topbar > div { order: 0; }.topbar .local-badge { order: 2; }.breadcrumb { color: #5b6b4c; }.slash { color: #849175; margin: 0 11px; }
+.topbar #install-button { order: 2; min-height: 30px; padding: 6px 9px; }
 .local-badge { border: 1px solid #637b4d; background: #d5dfb1; color: #314b2a; font-size: 10px; padding: 5px 9px; }
 .local-badge .status-dot { background: #547339; box-shadow: none; }
 main { padding-top: 38px; }

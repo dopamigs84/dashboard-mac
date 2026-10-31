@@ -14,6 +14,14 @@ npm start
 
 Apri <http://127.0.0.1:4317>. Se la porta è occupata da un'altra app, usa `PORT=4318 npm start` e apri la porta indicata.
 
+### Installa come app di Chrome
+
+Con la dashboard avviata, apri <http://127.0.0.1:4317> in una finestra normale di Chrome e premi **Installa app** nella barra superiore quando compare. Puoi anche usare l'icona di installazione nella barra degli indirizzi o il menu **⋮ → Trasmetti, salva e condividi → Installa pagina come app…**. L'app si apre in una finestra dedicata e puoi mantenerla nel Dock. Le app installate si trovano anche in `chrome://apps`.
+
+Non serve una build: il server distribuisce già l'interfaccia, il manifest e le icone. Dopo un aggiornamento del codice, riavvia il server e ricarica la pagina. Il pulsante compare solo quando il browser rende disponibile l'installazione e non compare nella finestra dell'app installata.
+
+Il server Node deve restare acceso anche dopo l'installazione: l'icona di Chrome non lo avvia e l'app non funziona con il server spento. Usa sempre lo stesso indirizzo e la stessa porta per ritrovare app e preferenze.
+
 ## Uso
 
 - Cerca per nome, percorso o tecnologia. `⌘ K` oppure `/` porta alla ricerca; `Esc` cancella il testo.

@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "Dashboard Mac",
+  "short_name": "Dashboard",
+  "description": "Ritrova, apri e gestisci i progetti sul tuo Mac.",
+  "lang": "it",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#334a38",
+  "background_color": "#f1efd5",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

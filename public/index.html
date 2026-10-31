@@ -7,7 +7,9 @@
   <meta name="description" content="Un unico posto per ritrovare e aprire i progetti sul tuo Mac.">
   <title>Progetti · Dashboard Mac</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/style.css">
+  <script src="/install.js" defer></script>
   <script src="/resources.js" defer></script>
   <script src="/runtime.js" defer></script>
   <script src="/projects.js" defer></script>
@@ -27,7 +29,7 @@
     </div>
   </aside>
   <div class="workspace">
-    <header class="topbar"><div><span class="breadcrumb">Spazio di lavoro</span><span class="slash">/</span><span id="breadcrumb-current">Tutti i progetti</span></div><span class="local-badge"><span class="status-dot"></span> Locale</span></header>
+    <header class="topbar"><div><span class="breadcrumb">Spazio di lavoro</span><span class="slash">/</span><span id="breadcrumb-current">Tutti i progetti</span></div><button id="install-button" class="button secondary" type="button" hidden>Installa app</button><span class="local-badge"><span class="status-dot"></span> Locale</span></header>
     <main id="main">
       <div class="heading"><div><div class="eyebrow">IL TUO PUNTO DI PARTENZA</div><h1 id="page-title">Tutti i progetti<span class="title-dot">.</span></h1><p id="page-description">Meno cartelle da cercare. Più spazio per le tue idee.</p></div><button id="scan-button" class="button secondary" type="button"><span data-icon="refresh"></span><span>Aggiorna progetti</span></button></div>
       <section id="project-overview" class="overview" aria-label="Panoramica"><div class="stat-card"><span class="stat-icon green" data-icon="layers"></span><div><span class="stat-label">Progetti trovati</span><strong id="count-all">—</strong></div><span class="stat-detail">Tutto, in un unico posto</span></div><div class="stat-card"><span class="stat-icon sand" data-icon="server"></span><div><span class="stat-label">In MAMP</span><strong id="count-mamp">—</strong></div><span class="stat-detail">La tua cartella htdocs</span></div><div class="stat-card"><span class="stat-icon lilac" data-icon="home"></span><div><span class="stat-label">Nella Home</span><strong id="count-home">—</strong></div><span class="stat-detail">I progetti sul tuo Mac</span></div></section>
