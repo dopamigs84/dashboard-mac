@@ -39,6 +39,43 @@ Modifica `config.json`, poi premi **Aggiorna progetti**:
 
 La scansione iniziale include la Home fino a quattro livelli, `htdocs` e tutte le sue sottocartelle dirette. Quando riconosce un progetto, non entra nei suoi componenti interni: un monorepo resta una scheda. Le cartelle inaccessibili generano avvisi; per includerle occorre concedere al terminale i permessi macOS necessari. La data di modifica considera la cartella e fino a 100 file del primo livello, non tutte le modifiche ricorsive e neppure l'ultimo commit Git. “Git” indica la presenza del repository, non lo stato delle modifiche.
 
+## Scheda del progetto
+
+Clicca sul **nome di un progetto** nelle schede o nell'elenco per aprirne la scheda completa. Salva descrizione, cliente, stato del lavoro (attivo, in pausa, archiviato) e note, ad esempio il prossimo passo da fare. I dati sono salvati sul Mac in `.local/projects.json`, con scritture atomiche e fuori da Git: sopravvivono al riavvio della dashboard e al cambio di browser. Le modifiche vanno confermate con **Salva scheda**; un avviso protegge quelle non salvate quando esci dalla scheda.
+
+La ricerca principale include anche cliente, descrizione e note; il filtro **Tutti gli stati** permette di mostrare solo progetti attivi, in pausa o archiviati. Lo stato del lavoro non corrisponde allo stato di esecuzione del server.
+
+Nella scheda trovi Finder, VS Code, browser, configurazione del comando, avvio/stop, log e un campione delle risorse. **Aggiorna dati** aggiorna lo stato del comando, le risorse e forza una nuova lettura Git. I log continuano a usare la stessa finestra della sezione Avvio e porte.
+
+Git viene letto senza fetch, pull o modifiche al repository, con `GIT_OPTIONAL_LOCKS=0` e fsmonitor disabilitato per la lettura. Mostra ramo, ultimo commit, modifiche in staging/non in staging, voci non tracciate e conflitti; i due conteggi di staging possono sovrapporsi per uno stesso file. Le directory non tracciate sono contate come voci, non come numero di file interni. L'elenco mostra al massimo 30 voci. I commit avanti/indietro sono relativi al riferimento remoto **locale**, che potrebbe non essere aggiornato. Il collegamento al repository viene convertito a HTTP(S) e privato di credenziali, query e frammenti. Un progetto dentro un repository più ampio non eredita uno stato Git attribuito erroneamente alla sola sottocartella. Le letture sono conservate per 10 secondi, con un limite di 10 secondi e 1 MiB per comando; errori e repository senza commit sono gestiti separatamente.
+
+## Spazio da recuperare
+
+Apri **Spazio da recuperare → Avvia analisi**. La ricerca individua cartelle note: `node_modules`, `vendor`, ambienti Python e `Pods` come dipendenze; `.next`, `.nuxt`, `.output`, `dist`, `build` e `target` come build; cache di strumenti, `__pycache__` e `coverage` come cache. La classificazione è un suggerimento basato sul nome: una cartella con un nome generico può contenere file da conservare.
+
+La tabella è ordinabile per dimensione e filtrabile per progetto, percorso e categoria. Usa **Finder** per esaminare la cartella, oppure clicca il nome del progetto per tornare alla sua scheda. Questa funzione **analizza e apre le cartelle, senza eliminarle**.
+
+La scansione esplora fino a 6 livelli e 20.000 cartelle dei progetti indicizzati. Non segue symlink e salta `.git`, file caricati e cartelle di storage. Si ferma quando trova un candidato, così `node_modules/.cache` non viene contato una seconda volta; anche sorgenti sovrapposte sono deduplicate. Le misure `du -sk -P` arrivano in background, due alla volta, con limite di 30 secondi per cartella. Limiti, permessi mancanti e misure fallite sono segnalati; una misura incompleta resta senza dimensione. Il totale somma solo i candidati misurati e non garantisce lo spazio fisico recuperabile, per via di APFS, hard link e file condivisi. Nessun comando di ricostruzione o reinstallazione viene eseguito automaticamente.
+
+I risultati restano in memoria fino al riavvio; **Ripeti analisi** li aggiorna. Una richiesta durante una scansione attiva riutilizza lo stesso lavoro. La vista interroga l'avanzamento ogni 2 secondi solo mentre è aperta e visibile. Un percorso cambiato dopo la scansione non può essere aperto dal pulsante Finder.
+
+## Avvio, stop e porte
+
+Apri **Avvio e porte** dalla barra laterale, oppure usa il pulsante ▶ sulla scheda di un progetto.
+
+1. Premi **Configura** sul progetto.
+2. Indica il comando completo, per esempio `npm run dev`, e la cartella relativa di avvio: `.` per la cartella principale, `frontend` per una sottocartella. La cartella deve restare dentro il progetto anche dopo la risoluzione dei collegamenti simbolici.
+3. Se vuoi, salva l'indirizzo del progetto, per esempio `http://localhost:3000`. La porta va impostata nel comando o nella configurazione del progetto: questo campo non cambia i parametri del server.
+4. Salva e premi **Avvia**. Usa **Log** per vedere l'output, gli errori e il codice di uscita; **Stop** per chiudere il gruppo avviato.
+
+I comandi sono eseguiti sul Mac tramite `zsh -lc`. Eventuali script `dev`, `start` e `serve` presenti nel `package.json` principale vengono suggeriti, ma non eseguiti automaticamente. Le dipendenze devono essere già installate. Il primo stato “Comando in esecuzione” conferma l'avvio del comando, non che il servizio HTTP sia già pronto. I comandi sono salvati in `.local/launch.json`, fuori da Git, e restano disponibili dopo un riavvio.
+
+Lo stop usa un gruppo di processi dedicato: prima invia SIGTERM, poi SIGKILL dopo 3 secondi se il comando non chiude. Gestisce anche i processi figli; i progetti attivi rimossi dal catalogo restano elencati per poterli fermare. Se macOS nega il segnale viene mostrato un errore. Usa comandi in primo piano: programmi che si avviano come demoni o si separano volontariamente dal gruppo non sono supportati. La chiusura regolare della dashboard con `Ctrl+C` o SIGTERM ferma i gruppi che ha avviato. Un arresto forzato del Mac, SIGKILL o un crash può lasciarli attivi: al riavvio appariranno eventualmente tra le porte esterne, senza riassociare vecchi PID a comandi gestiti.
+
+**Porte occupate** elenca le porte TCP in ascolto, l'indirizzo, il nome del processo e il PID, con associazione alla cartella del progetto quando leggibile. Il link “Apri HTTP” è un tentativo verso un servizio web; non tutte le porte usano HTTP. Apache, database e altri programmi avviati altrove si fermano dalla loro applicazione di origine. Il controllo preventivo di una porta locale configurata blocca l'avvio se risulta già occupata; è un controllo best effort e il server del progetto resta responsabile del bind effettivo.
+
+La vista si aggiorna ogni 3 secondi mentre è aperta e visibile. I log mostrano gli ultimi 64.000 caratteri, restano in memoria fino al riavvio della dashboard e vengono sostituiti al successivo avvio del progetto. Non vengono esposti gli argomenti dei processi esterni. Letture parziali o negate delle porte sono segnalate con un avviso.
+
 ## Risorse del Mac e dei progetti
 
 Apri **Risorse del Mac** nella barra laterale. Il pulsante con il monitor su ogni scheda apre la stessa sezione filtrata per quel progetto.

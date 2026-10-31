@@ -7,6 +7,7 @@ import { once } from 'node:events';
 import { Readable } from 'node:stream';
 import { readConfig, scan } from '../lib/catalog.mjs';
 import { createDashboard } from '../server.mjs';
+import { createProjectStore } from '../lib/projects.mjs';
 
 // Default tests exercise the exact request handler without opening a socket.
 // npm run test:http runs the same assertions against real HTTP on loopback.
@@ -142,4 +143,88 @@ test('API reports native opener failures and keeps the server usable', async t =
   assert.equal(response.status, 500);
   assert.match((await response.json()).error, /VS Code/);
   assert.equal((await request('/api/projects', { headers })).status, 200);
+});
+
+test('runtime endpoints validate IDs, require sessions and detect configured port conflicts before launching', async t => {
+  const { configFile } = await fixture(t);
+  let stored;
+  let started = 0;
+  let occupied = false;
+  const runtimeManager = {
+    list: async projects => ({ projects: projects.map(p => ({ ...p, profile: stored || { command: '', directory: '.', url: '' } })) }),
+    configure: async (project, input) => { stored = { command: input.command, directory: input.directory, url: input.url }; return { id: project.id, profile: stored }; },
+    start: async project => { started++; return { id: project.id, status: 'running' }; },
+    stop: async id => { if (id !== 'managed') throw Object.assign(new Error('Not managed'), { status: 404 }); return { id, status: 'exited' }; },
+    logs: () => ({ logs: 'hello', status: 'running' }), shutdown: async () => {},
+  };
+  const portMonitor = { get: async () => ({ warnings: [], listeners: occupied ? [{ port: 3000, pid: 1234, name: 'node' }] : [] }) };
+  const server = createDashboard({ configFile, runtimeManager, portMonitor });
+  const request = await client(server, t);
+  const { token } = await (await request('/api/session')).json();
+  const headers = { 'X-Dashboard-Token': token, 'Content-Type': 'application/json' };
+  const post = (path, input) => request(path, { method: 'POST', headers, body: JSON.stringify(input) });
+  assert.equal((await request('/api/runtime')).status, 403);
+  assert.equal((await request('/api/ports')).status, 403);
+  assert.equal((await request('/api/runtime/start', { method: 'POST', body: '{}' })).status, 403);
+  const list = await (await request('/api/runtime', { headers })).json();
+  const id = list.projects[0].id;
+  assert.equal((await post('/api/runtime/start', { id, command: 'injected' })).status, 400);
+  assert.equal((await post('/api/runtime/start', { id: 'unknown' })).status, 404);
+  assert.equal((await post('/api/runtime/config', { id, command: 'npm run dev', directory: '.', url: 'http://localhost:3000' })).status, 200);
+  occupied = true;
+  assert.equal((await post('/api/runtime/start', { id })).status, 409);
+  assert.equal(started, 0);
+  occupied = false;
+  assert.equal((await post('/api/runtime/start', { id })).status, 200);
+  assert.equal(started, 1);
+  assert.equal((await post('/api/runtime/stop', { id: '1234' })).status, 404);
+  assert.equal((await post('/api/runtime/stop', { id: 'managed' })).status, 200);
+  assert.equal((await request(`/api/runtime/logs?id=${id}`, { headers })).status, 200);
+  assert.equal((await request('/api/runtime/logs?id=unknown', { headers })).status, 404);
+  assert.equal((await request('/runtime.js')).status, 200);
+  assert.equal((await request('/api/runtime/start', { headers })).status, 405);
+  assert.equal((await request('/api/ports', { headers })).status, 200);
+});
+
+test('project sheets and space routes enforce catalog IDs, persist long notes and only open discovered folders', async t => {
+  const { dir, configFile, create } = await fixture(t);
+  const calls = [];
+  let candidates = [];
+  const projectStore = createProjectStore({ storageDir: join(dir, 'metadata') });
+  const spaceAnalyzer = { get: () => ({ candidates, running: false, phase: 'complete' }), start: projects => ({ running: true, total: projects.length }) };
+  const runtimeManager = { list: async projects => ({ projects: projects.map(p => ({ id: p.id, status: 'idle' })) }), shutdown: async () => {} };
+  const resourceMonitor = { get: async projects => ({ projects: projects.map(p => ({ id: p.id, cpuPercent: null })) }) };
+  const gitReader = { get: async () => ({ state: 'none', message: 'No repository' }) };
+  const server = createDashboard({ configFile, projectStore, gitReader, resourceMonitor, runtimeManager, spaceAnalyzer, opener: async (...args) => calls.push(args) });
+  const request = await client(server, t);
+  const { token } = await (await request('/api/session')).json();
+  const headers = { 'X-Dashboard-Token': token, 'Content-Type': 'application/json' };
+  const post = (path, input) => request(path, { method: 'POST', headers, body: JSON.stringify(input) });
+  for (const path of ['/api/metadata', '/api/project', '/api/space']) assert.equal((await request(path)).status, 403);
+  assert.equal((await request('/api/space/scan', { method: 'POST' })).status, 403);
+  const catalog = await (await request('/api/projects', { headers })).json();
+  const project = catalog.projects[0];
+  const value = { id: project.id, description: 'Descrizione', client: 'Cliente', notes: 'è'.repeat(3000), status: 'paused' };
+  assert.equal((await post('/api/metadata', value)).status, 200);
+  const metadata = await (await request('/api/metadata', { headers })).json();
+  assert.equal(metadata.metadata[project.id].notes, value.notes);
+  const detail = await (await request(`/api/project?id=${project.id}&fresh=1`, { headers })).json();
+  assert.equal(detail.metadata.client, value.client);
+  assert.equal(detail.git.state, 'none');
+  assert.equal(detail.runtime.id, project.id);
+  assert.equal(detail.resource.cpuPercent, null);
+  assert.deepEqual(detail.warnings, []);
+  assert.equal((await post('/api/metadata', { ...value, status: 'bad' })).status, 400);
+  assert.equal((await post('/api/metadata', { ...value, extra: 'not allowed' })).status, 400);
+  assert.equal((await post('/api/metadata', { ...value, id: 'unknown' })).status, 404);
+  assert.equal((await request('/api/project?id=unknown', { headers })).status, 404);
+  assert.equal((await request('/api/space/scan', { method: 'POST', headers })).status, 202);
+  const path = join(project.path, 'build'); await create(path);
+  candidates = [{ projectId: project.id, projectPath: project.path, path }];
+  assert.equal((await post('/api/space/open', { path })).status, 200);
+  assert.deepEqual(calls[0].slice(0, 2), ['/usr/bin/open', [path]]);
+  assert.equal((await post('/api/space/open', { path: '/etc' })).status, 404);
+  assert.equal((await post('/api/space/open', null)).status, 400);
+  assert.equal((await request('/api/space/scan', { headers })).status, 405);
+  assert.equal((await request('/projects.js')).status, 200);
 });

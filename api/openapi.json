@@ -454,6 +454,347 @@
             }
           }
         }
+      },
+      "LaunchProfile": {
+        "type": "object",
+        "required": [
+          "command",
+          "directory",
+          "url"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "maxLength": 1500
+          },
+          "directory": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "RuntimeProject": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "path",
+          "profile",
+          "suggestions",
+          "status",
+          "pid",
+          "startedAt",
+          "endedAt",
+          "exitCode",
+          "error"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/LaunchProfile"
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "enum": [
+              "idle",
+              "running",
+              "stopping",
+              "exited",
+              "error"
+            ]
+          },
+          "pid": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "startedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "endedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "exitCode": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ProjectMetadata": {
+        "type": "object",
+        "required": [
+          "description",
+          "client",
+          "status",
+          "notes",
+          "updatedAt"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "client": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused",
+              "archived"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 6000
+          },
+          "updatedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "GitState": {
+        "type": "object",
+        "required": [
+          "state"
+        ],
+        "properties": {
+          "state": {
+            "enum": [
+              "none",
+              "parent",
+              "error",
+              "ready"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "repositoryUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ahead": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "behind": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "sampledAt": {
+            "type": "string"
+          },
+          "changedEntries": {
+            "type": "integer"
+          },
+          "staged": {
+            "type": "integer"
+          },
+          "unstaged": {
+            "type": "integer"
+          },
+          "untracked": {
+            "type": "integer"
+          },
+          "conflicts": {
+            "type": "integer"
+          },
+          "files": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "path"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "lastCommit": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "hash": {
+                "type": "string"
+              },
+              "subject": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "SpaceAnalysis": {
+        "type": "object",
+        "required": [
+          "phase",
+          "running",
+          "visited",
+          "measured",
+          "total",
+          "totalBytes",
+          "startedAt",
+          "finishedAt",
+          "warnings",
+          "candidates"
+        ],
+        "properties": {
+          "phase": {
+            "enum": [
+              "idle",
+              "discovering",
+              "measuring",
+              "complete"
+            ]
+          },
+          "running": {
+            "type": "boolean"
+          },
+          "visited": {
+            "type": "integer"
+          },
+          "measured": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "totalBytes": {
+            "type": "number"
+          },
+          "startedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "finishedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "projectId",
+                "projectName",
+                "projectPath",
+                "path",
+                "category",
+                "status",
+                "bytes",
+                "error"
+              ],
+              "properties": {
+                "projectId": {
+                  "type": "string"
+                },
+                "projectName": {
+                  "type": "string"
+                },
+                "projectPath": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "category": {
+                  "enum": [
+                    "dependencies",
+                    "build",
+                    "cache"
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "pending",
+                    "complete",
+                    "error"
+                  ]
+                },
+                "bytes": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "error": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -667,6 +1008,584 @@
           },
           "default": {
             "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/runtime": {
+      "get": {
+        "operationId": "listRuntime",
+        "summary": "Comandi salvati e stato dei progetti gestiti",
+        "description": "Include i progetti attivi rimossi dal catalogo, così restano arrestabili. I suggerimenti npm non vengono eseguiti automaticamente.",
+        "responses": {
+          "200": {
+            "description": "Risultato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "projects"
+                  ],
+                  "properties": {
+                    "projects": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RuntimeProject"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/runtime/config": {
+      "post": {
+        "operationId": "configRuntime",
+        "summary": "Salva un comando esplicito sul Mac",
+        "description": "Scrittura atomica in .local/launch.json. Cartella relativa esistente, risolta senza uscire dal progetto. 409 se il progetto è attivo. Il comando è codice shell esplicitamente configurato dall’utente, eseguito tramite zsh -lc. Nessuna installazione automatica.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "command",
+                  "directory",
+                  "url"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "command": {
+                    "type": "string",
+                    "maxLength": 1500
+                  },
+                  "directory": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "url": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Risultato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeProject"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/runtime/start": {
+      "post": {
+        "operationId": "startRuntime",
+        "summary": "Avvia un progetto con il comando salvato",
+        "description": "Solo ID del catalogo. Il comando gira in un gruppo dedicato, con log limitati a 64.000 caratteri. La risposta indica l’avvio del comando, non la disponibilità HTTP. 409 se già gestito, dashboard in chiusura o porta dell’URL locale configurato occupata (controllo best effort tramite lsof).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Risultato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeProject"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/runtime/stop": {
+      "post": {
+        "operationId": "stopRuntime",
+        "summary": "Ferma solo un gruppo avviato dalla dashboard",
+        "description": "Solo gruppi avviati dalla sessione corrente della dashboard. SIGTERM a tutto il gruppo, poi SIGKILL dopo 3 secondi se necessario. 404 per processi esterni, 503 se macOS nega il segnale. Anche i progetti rimossi dal catalogo restano arrestabili.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Risultato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeProject"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/runtime/logs": {
+      "get": {
+        "operationId": "getRuntimeLogs",
+        "summary": "Ultimo output del comando gestito",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Risultato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "logs",
+                    "status"
+                  ],
+                  "properties": {
+                    "logs": {
+                      "type": "string",
+                      "maxLength": 64000
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/ports": {
+      "get": {
+        "operationId": "listPorts",
+        "summary": "Porte TCP in ascolto sul Mac e processi visibili",
+        "description": "Campioni condivisi per 3 secondi, associazione per cartella di lavoro e prefisso più specifico. Programmi esterni visibili ma non arrestabili dall’API. Gli URL sono tentativi HTTP: non tutti i servizi sono web. Avvisi espliciti in caso di lettura negata o parziale.",
+        "responses": {
+          "200": {
+            "description": "Risultato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "sampledAt",
+                    "warnings",
+                    "listeners"
+                  ],
+                  "properties": {
+                    "sampledAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "listeners": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "pid",
+                          "name",
+                          "address",
+                          "port",
+                          "projectId",
+                          "projectName",
+                          "url"
+                        ],
+                        "properties": {
+                          "pid": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "address": {
+                            "type": "string"
+                          },
+                          "port": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 65535
+                          },
+                          "projectId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "projectName": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "url": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/metadata": {
+      "get": {
+        "operationId": "listProjectMetadata",
+        "summary": "Note dei soli progetti indicizzati",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Risultato locale",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "metadata"
+                  ],
+                  "properties": {
+                    "metadata": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "$ref": "#/components/schemas/ProjectMetadata"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveProjectMetadata",
+        "summary": "Salva descrizione, cliente, stato e note",
+        "description": "Scrittura atomica serializzata in .local/projects.json. ID del catalogo obbligatorio; payload massimo 32 KiB. I file del progetto non vengono modificati.",
+        "responses": {
+          "200": {
+            "description": "Risultato locale",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectMetadata"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "description",
+                  "client",
+                  "status",
+                  "notes"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "client": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "status": {
+                    "enum": [
+                      "active",
+                      "paused",
+                      "archived"
+                    ]
+                  },
+                  "notes": {
+                    "type": "string",
+                    "maxLength": 6000
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/project": {
+      "get": {
+        "operationId": "getProjectSheet",
+        "summary": "Scheda, Git, avvio e campione risorse",
+        "description": "Git locale, senza fetch; cache 10 secondi, fresh=1 la ignora. Un repository antenato non viene attribuito al sotto-progetto. Stato Git per voci: directory non tracciate contate una volta. URL remoti privati di credenziali, query e frammenti. Singole sezioni non leggibili generano null/avvisi.",
+        "responses": {
+          "200": {
+            "description": "Risultato locale",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "project",
+                    "metadata",
+                    "git",
+                    "runtime",
+                    "resource",
+                    "warnings"
+                  ],
+                  "properties": {
+                    "project": {
+                      "$ref": "#/components/schemas/Project"
+                    },
+                    "metadata": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/ProjectMetadata"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "git": {
+                      "$ref": "#/components/schemas/GitState"
+                    },
+                    "runtime": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/RuntimeProject"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "resource": {
+                      "type": [
+                        "object",
+                        "null"
+                      ]
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fresh",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "0",
+                "1"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/api/space": {
+      "get": {
+        "operationId": "getSpaceAnalysis",
+        "summary": "Risultati progressivi dell’analisi spazio",
+        "description": "Somma dello spazio allocato dei candidati misurati. Non garantisce lo spazio fisico recuperabile. Risultati in memoria, nessuna eliminazione.",
+        "responses": {
+          "200": {
+            "description": "Risultato locale",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceAnalysis"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/space/scan": {
+      "post": {
+        "operationId": "startSpaceAnalysis",
+        "summary": "Analizza dipendenze, build e cache dei progetti",
+        "description": "Riutilizza un lavoro attivo, altrimenti riparte. Profondità massima 6 e 20.000 cartelle. Symlink esclusi; alberi candidati disgiunti. Due misure du simultanee, timeout 30 secondi. Avvisi per limiti ed errori; dimensioni parziali non usate come complete.",
+        "responses": {
+          "202": {
+            "description": "Risultato locale",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceAnalysis"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/api/space/open": {
+      "post": {
+        "operationId": "inspectSpaceCandidate",
+        "summary": "Apri in Finder una cartella individuata",
+        "description": "Solo un percorso esatto presente nei risultati. Percorso e radice devono ancora corrispondere ai realpath. Nessuna eliminazione.",
+        "responses": {
+          "200": {
+            "description": "Risultato locale",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "path"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
           }
         }
       }

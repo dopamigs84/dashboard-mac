@@ -1,10 +1,11 @@
-import { createDashboard } from './server.mjs';
+import { createDashboard, handleShutdown } from './server.mjs';
 import { execFile } from 'node:child_process';
 
 const port = Number(process.env.PORT || 4317);
 const url = `http://127.0.0.1:${port}`;
 const openBrowser = () => execFile('/usr/bin/open', [url], error => { if (error) console.log(`Apri ${url} nel browser.`); });
 const server = createDashboard();
+handleShutdown(server);
 server.on('error', async error => {
   if (error.code === 'EADDRINUSE') {
     try {

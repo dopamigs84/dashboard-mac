@@ -1,5 +1,6 @@
 /* No external services or dependencies: project metadata stays on this Mac. */
 const icons = {
+  play: '<path d="M3 1h2v1h2v2h2v1h2v2h2v2h-2v2H9v1H7v2H5v1H3z"/>',
   folder: '<path d="M1 3h6v2h8v9H1V3zm2 2v7h10V7H6V5H3z" fill-rule="evenodd"/>',
   layers: '<path d="M1 1h6v6H1zm8 0h6v6H9zM1 9h6v6H1zm8 0h6v6H9z"/>',
   grid: '<path d="M1 1h6v6H1V1zm2 2v2h2V3H3zm6-2h6v6H9V1zm2 2v2h2V3h-2zM1 9h6v6H1V9zm2 2v2h2v-2H3zm6-2h6v6H9V9zm2 2v2h2v-2h-2z" fill-rule="evenodd"/>',
@@ -58,7 +59,7 @@ function pixelTitle(title) {
 const load = (key, fallback) => { try { return JSON.parse(localStorage.getItem(`dashboard-mac:${key}`)) ?? fallback; } catch { return fallback; } };
 const savedFavorites = load('favorites', []);
 const objectSetting = key => { const value = load(key, {}); return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; };
-const state = { projects: [], roots: [], active: 'all', type: 'all', query: '', token: '', favorites: new Set(Array.isArray(savedFavorites) ? savedFavorites.filter(id => typeof id === 'string') : []), recent: objectSetting('recent'), urls: objectSetting('urls'), view: load('view', 'grid') === 'list' ? 'list' : 'grid', sort: 'modified', vscode: false, loaded: false };
+const state = { projects: [], roots: [], metadata: {}, active: 'all', type: 'all', query: '', token: '', favorites: new Set(Array.isArray(savedFavorites) ? savedFavorites.filter(id => typeof id === 'string') : []), recent: objectSetting('recent'), urls: objectSetting('urls'), view: load('view', 'grid') === 'list' ? 'list' : 'grid', sort: 'modified', vscode: false, loaded: false };
 let toastTimer;
 let editingUrl;
 function toast(message) { $('toast').textContent = message; $('toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').hidden = true; }, 3500); }
@@ -83,14 +84,14 @@ function relativeDate(date) {
   return new Date(date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 function navigation() {
-  const entries = [{ id: 'all', label: 'Tutti i progetti', icon: 'layers', count: state.projects.length }, { id: 'favorites', label: 'Preferiti', icon: 'star', count: state.projects.filter(p => state.favorites.has(p.id)).length }, { id: 'recent', label: 'Aperti di recente', icon: 'clock' }, { id: 'resources', label: 'Risorse del Mac', icon: 'monitor' }];
+  const entries = [{ id: 'all', label: 'Tutti i progetti', icon: 'layers', count: state.projects.length }, { id: 'favorites', label: 'Preferiti', icon: 'star', count: state.projects.filter(p => state.favorites.has(p.id)).length }, { id: 'recent', label: 'Aperti di recente', icon: 'clock' }, { id: 'resources', label: 'Risorse del Mac', icon: 'monitor' }, { id: 'runtime', label: 'Avvio e porte', icon: 'play' }, { id: 'space', label: 'Spazio da recuperare', icon: 'folder' }];
   const sources = state.roots.map(root => ({ id: root.id, label: root.label, icon: root.id === 'mamp' ? 'server' : 'home', count: state.projects.filter(p => p.rootId === root.id).length }));
   const buttons = items => items.map(item => `<button class="nav-item ${state.active === item.id ? 'active' : ''}" data-nav="${escapeHtml(item.id)}" ${state.active === item.id ? 'aria-current="page"' : ''}>${icon(item.icon)}<span>${escapeHtml(item.label)}</span>${item.count !== undefined ? `<span class="nav-count">${state.loaded ? item.count : '—'}</span>` : ''}</button>`).join('');
   $('navigation').innerHTML = buttons(entries) + '<div class="nav-label sources-label">SORGENTI</div>' + buttons(sources);
-  const title = [...entries, ...sources].find(item => item.id === state.active)?.label || 'Tutti i progetti';
+  const title = state.active === 'detail' ? (projectUi.data?.project.name || state.projects.find(p => p.id === projectUi.id)?.name || 'Scheda progetto') : [...entries, ...sources].find(item => item.id === state.active)?.label || 'Tutti i progetti';
   $('page-title').innerHTML = pixelTitle(title);
   $('breadcrumb-current').textContent = title;
-  $('page-description').textContent = state.active === 'resources' ? 'Una vista su CPU, memoria e spazio occupato. Sul Mac e nei tuoi progetti.' : state.active === 'favorites' ? 'I progetti che vuoi tenere sempre a portata di mano.' : state.active === 'recent' ? 'Riprendi da dove avevi lasciato, senza cercare.' : 'Meno cartelle da cercare. Più spazio per le tue idee.';
+  $('page-description').textContent = state.active === 'detail' ? 'Il contesto, gli strumenti e il prossimo passo del tuo progetto.' : state.active === 'space' ? 'Scopri quanto occupano dipendenze, build e cache dei progetti.' : state.active === 'runtime' ? 'Avvia i progetti, controlla i log e ritrova le porte occupate.' : state.active === 'resources' ? 'Una vista su CPU, memoria e spazio occupato. Sul Mac e nei tuoi progetti.' : state.active === 'favorites' ? 'I progetti che vuoi tenere sempre a portata di mano.' : state.active === 'recent' ? 'Riprendi da dove avevi lasciato, senza cercare.' : 'Meno cartelle da cercare. Più spazio per le tue idee.';
 }
 function sourceProjects() {
   return state.projects.filter(p => state.active === 'all' || (state.active === 'favorites' ? state.favorites.has(p.id) : state.active === 'recent' ? Boolean(state.recent[p.id]) : p.rootId === state.active));
@@ -106,26 +107,37 @@ function projectCard(project) {
   const name = escapeHtml(project.name);
   const favorite = state.favorites.has(project.id);
   const url = urlFor(project);
+  const metadata = state.metadata[project.id];
   const initial = project.name.split(/[-_\s]+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
   return `<article class="project-card" data-project="${project.id}">
     <div class="card-top"><span class="project-monogram ${palette(project.type)}">${escapeHtml(initial)}</span><span class="source-badge">${icon(project.rootId === 'mamp' ? 'server' : 'home')}${escapeHtml(project.rootLabel)}</span><button class="icon-button favorite ${favorite ? 'is-favorite' : ''}" data-action="favorite" aria-pressed="${favorite}" aria-label="${favorite ? 'Rimuovi' : 'Aggiungi'} ${name} ${favorite ? 'dai' : 'ai'} preferiti" title="${favorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}">${icon('star')}</button></div>
-    <div class="card-info"><h2 title="${name}">${name}</h2><div class="project-path" title="${escapeHtml(project.path)}">${escapeHtml(project.displayPath)}</div></div>
+    <div class="card-info"><h2><button class="project-title" data-action="detail" title="Apri la scheda di ${name}">${name}</button></h2><div class="project-path" title="${escapeHtml(project.path)}">${escapeHtml(project.displayPath)}</div>
+    ${metadata ? `<div class="project-context"><span class="work-state">${workStatusLabel(metadata.status)}</span>${metadata.client ? `<span>${escapeHtml(metadata.client)}</span>` : ''}</div>` : ''}</div>
     <div class="project-meta"><span class="technology"><span class="tech-dot ${palette(project.type)}"></span>${escapeHtml(project.type)}</span>${project.git ? `<span class="git-tag" title="Repository Git">${icon('git')}Git</span>` : ''}<time datetime="${project.modifiedAt}" title="Ultima modifica nella cartella principale: ${escapeHtml(new Date(project.modifiedAt).toLocaleString('it-IT'))}">${icon('clock')}${relativeDate(project.modifiedAt)}</time></div>
-    <div class="card-actions"><button class="open-finder" data-action="finder" aria-label="Apri ${name} nel Finder">${icon('folder')}Finder</button><button class="icon-button" data-action="resources" title="Risorse del progetto" aria-label="Vedi risorse di ${name}">${icon('monitor')}</button><button class="icon-button" data-action="vscode" title="${state.vscode ? 'Apri in VS Code' : 'VS Code non trovato in Applicazioni'}" aria-label="Apri ${name} in VS Code" ${state.vscode ? '' : 'disabled'}>${icon('code')}</button>${url ? `<a class="icon-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" data-action="browser" title="Apri ${escapeHtml(url)}" aria-label="Apri ${name} nel browser">${icon('external')}</a>` : `<button class="icon-button" data-action="url" title="Collega un indirizzo browser" aria-label="Imposta indirizzo browser per ${name}">${icon('link')}</button>`}<button class="icon-button copy-button" data-action="copy" title="Copia percorso" aria-label="Copia percorso di ${name}">${icon('copy')}</button>${url ? `<button class="icon-button edit-url" data-action="url" title="Modifica indirizzo browser" aria-label="Modifica indirizzo browser di ${name}">${icon('settings')}</button>` : ''}</div>
+    <div class="card-actions"><button class="icon-button" data-action="runtime" title="Gestisci avvio e stop" aria-label="Gestisci avvio di ${name}">${icon('play')}</button><button class="open-finder" data-action="finder" aria-label="Apri ${name} nel Finder">${icon('folder')}Finder</button><button class="icon-button" data-action="resources" title="Risorse del progetto" aria-label="Vedi risorse di ${name}">${icon('monitor')}</button><button class="icon-button" data-action="vscode" title="${state.vscode ? 'Apri in VS Code' : 'VS Code non trovato in Applicazioni'}" aria-label="Apri ${name} in VS Code" ${state.vscode ? '' : 'disabled'}>${icon('code')}</button>${url ? `<a class="icon-button" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" data-action="browser" title="Apri ${escapeHtml(url)}" aria-label="Apri ${name} nel browser">${icon('external')}</a>` : `<button class="icon-button" data-action="url" title="Collega un indirizzo browser" aria-label="Imposta indirizzo browser per ${name}">${icon('link')}</button>`}<button class="icon-button copy-button" data-action="copy" title="Copia percorso" aria-label="Copia percorso di ${name}">${icon('copy')}</button>${url ? `<button class="icon-button edit-url" data-action="url" title="Modifica indirizzo browser" aria-label="Modifica indirizzo browser di ${name}">${icon('settings')}</button>` : ''}</div>
   </article>`;
 }
 function render() {
   navigation();
   const resources = state.active === 'resources';
+  const runtime = state.active === 'runtime';
+  const detail = state.active === 'detail';
+  const space = state.active === 'space';
+  $('detail-panel').hidden = !detail;
+  $('space-panel').hidden = !space;
+  $('runtime-panel').hidden = !runtime;
   $('resource-panel').hidden = !resources;
-  $('project-overview').hidden = resources;
-  $('project-library').hidden = resources;
-  $('scan-button').hidden = resources;
+  $('project-overview').hidden = resources || runtime || detail || space;
+  $('project-library').hidden = resources || runtime || detail || space;
+  $('scan-button').hidden = resources || runtime || detail || space;
+  if (detail) { renderProjectDetail(); return; }
+  if (space) { renderSpace(); return; }
+  if (runtime) { renderRuntime(); return; }
   if (resources) { renderResources(); return; }
   if (!state.loaded) return;
   typeFilters();
   const words = normalize(state.query.trim()).split(/\s+/).filter(Boolean);
-  const projects = sourceProjects().filter(p => (state.type === 'all' || p.type === state.type) && words.every(word => normalize(`${p.name} ${p.path} ${p.type} ${p.description}`).includes(word)));
+  const projects = sourceProjects().filter(p => (state.type === 'all' || p.type === state.type) && ($('work-status-filter').value === 'all' || (state.metadata[p.id]?.status || 'active') === $('work-status-filter').value) && words.every(word => normalize(`${p.name} ${p.path} ${p.type} ${p.description} ${state.metadata[p.id]?.client || ''} ${state.metadata[p.id]?.description || ''} ${state.metadata[p.id]?.notes || ''}`).includes(word)));
   projects.sort((a, b) => state.sort === 'name' ? a.name.localeCompare(b.name, 'it', { numeric: true, sensitivity: 'base' }) : state.sort === 'opened' || state.active === 'recent' ? (Number(state.recent[b.id]) || 0) - (Number(state.recent[a.id]) || 0) : b.modifiedAt.localeCompare(a.modifiedAt));
   $('result-count').textContent = `${projects.length} ${projects.length === 1 ? 'progetto' : 'progetti'}`;
   $('projects').classList.toggle('list-view', state.view === 'list');
@@ -133,7 +145,7 @@ function render() {
   $('list-button').setAttribute('aria-pressed', state.view === 'list');
   if (projects.length) $('projects').innerHTML = projects.map(projectCard).join('');
   else {
-    const filtering = Boolean(state.query || state.type !== 'all');
+    const filtering = Boolean(state.query || state.type !== 'all' || $('work-status-filter').value !== 'all');
     const title = filtering ? 'Nessun progetto trovato' : state.active === 'favorites' ? 'I tuoi preferiti iniziano qui' : state.active === 'recent' ? 'Pronto a ripartire?' : 'Non ci sono ancora progetti';
     const description = filtering ? 'Prova un altro nome, percorso o tecnologia.' : state.active === 'favorites' ? 'Premi la stella su un progetto per ritrovarlo qui.' : state.active === 'recent' ? 'Apri un progetto dalla dashboard: lo ritroverai in questa sezione.' : 'Aggiorna la scansione o controlla le cartelle di ricerca.';
     $('projects').innerHTML = `<div class="empty-state"><span class="empty-icon">${icon(filtering ? 'search' : state.active === 'favorites' ? 'star' : 'folder')}</span><h2>${title}</h2><p>${description}</p>${filtering ? '<button class="button secondary" id="reset-search">Azzera filtri</button>' : ''}</div>`;
@@ -156,6 +168,7 @@ async function refresh(initial = false) {
     state.projects = result.projects;
     state.roots = result.roots;
     state.loaded = true;
+    try { state.metadata = (await api('/api/metadata')).metadata; } catch { toast('Note e categorie non disponibili. Apri una scheda per riprovare.'); }
     $('scan-info').textContent = `Ultima scansione ${new Date(result.scannedAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} · ${result.visited.toLocaleString('it-IT')} cartelle esplorate`;
     $('warnings').hidden = result.warnings.length === 0;
     $('warnings').innerHTML = result.warnings.length ? `<details><summary>${result.warnings.length} ${result.warnings.length === 1 ? 'avviso sulla scansione' : 'avvisi sulla scansione'}</summary><ul>${result.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul></details>` : '';
@@ -167,21 +180,25 @@ async function refresh(initial = false) {
     if (!state.loaded) { $('projects').innerHTML = '<div class="empty-state"><span class="empty-icon">' + icon('folder') + '</span><h2>Riprendiamo tra un attimo</h2><p>Non è stato possibile caricare i progetti.<br>Usa “Aggiorna progetti” per riprovare.</p></div>'; $('scan-info').textContent = 'Scansione non disponibile'; }
   } finally { button.disabled = false; button.classList.remove('scanning'); button.lastElementChild.textContent = 'Aggiorna progetti'; $('projects').setAttribute('aria-busy', 'false'); }
 }
-$('navigation').addEventListener('click', event => { const button = event.target.closest('[data-nav]'); if (button) { state.active = button.dataset.nav; state.type = 'all'; render(); syncResourcePolling(); } });
+$('navigation').addEventListener('click', event => { const button = event.target.closest('[data-nav]'); if (button) { if (!canLeaveProject()) return; state.active = button.dataset.nav; state.type = 'all'; render(); syncResourcePolling(); syncRuntimePolling(); syncSpacePolling(); } });
 $('type-filters').addEventListener('click', event => { const button = event.target.closest('[data-type]'); if (button) { state.type = button.dataset.type; render(); } });
 $('search').addEventListener('input', event => { state.query = event.target.value; render(); });
+$('work-status-filter').addEventListener('change', render);
 $('sort').addEventListener('change', event => { state.sort = event.target.value; render(); });
 $('scan-button').addEventListener('click', () => refresh());
 for (const view of ['grid', 'list']) $(`${view}-button`).addEventListener('click', () => { state.view = view; save('view', view); render(); });
 $('projects').addEventListener('click', async event => {
-  if (event.target.closest('#reset-search')) { state.query = ''; state.type = 'all'; $('search').value = ''; render(); $('search').focus(); return; }
+  if (event.target.closest('#reset-search')) { state.query = ''; state.type = 'all'; $('search').value = ''; $('work-status-filter').value = 'all'; render(); $('search').focus(); return; }
   const button = event.target.closest('[data-action]');
   if (!button) return;
   const project = state.projects.find(p => p.id === button.closest('[data-project]').dataset.project);
   if (!project) return;
   const action = button.dataset.action;
-  if (action === 'resources') {
-    state.active = 'resources'; $('resource-search').value = project.path; $('resource-active').checked = false; render(); syncResourcePolling(); $('resource-search').focus();
+  if (action === 'detail') { openProjectDetail(project.id);
+  } else if (action === 'runtime') {
+    state.active = 'runtime'; $('runtime-search').value = project.path; $('runtime-only-active').checked = false; render(); syncResourcePolling(); syncRuntimePolling();
+  } else if (action === 'resources') {
+    state.active = 'resources'; $('resource-search').value = project.path; $('resource-active').checked = false; render(); syncResourcePolling(); syncRuntimePolling(); $('resource-search').focus();
   } else if (action === 'favorite') {
     state.favorites.has(project.id) ? state.favorites.delete(project.id) : state.favorites.add(project.id);
     save('favorites', [...state.favorites]); render();
@@ -221,9 +238,15 @@ document.querySelectorAll('.close-dialog').forEach(button => button.addEventList
 document.addEventListener('keydown', event => {
   const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
   if (document.querySelector('dialog[open]')) return;
-  if (((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') || (event.key === '/' && !typing)) { event.preventDefault(); const search = state.active === 'resources' ? $('resource-search') : $('search'); search.focus(); search.select(); }
+  if (((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') || (event.key === '/' && !typing)) {
+    event.preventDefault();
+    if (state.active === 'detail') { if (!canLeaveProject()) return; state.active = 'all'; render(); }
+    const search = state.active === 'space' ? $('space-search') : state.active === 'runtime' ? $('runtime-search') : state.active === 'resources' ? $('resource-search') : $('search'); search.focus(); search.select();
+  }
   if (event.key === 'Escape' && document.activeElement === $('search')) { $('search').value = ''; state.query = ''; render(); }
 });
+initProjects();
+initRuntime();
 initResources();
 navigation();
 refresh(true);
