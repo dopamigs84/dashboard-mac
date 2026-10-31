@@ -1,4 +1,5 @@
 (() => {
+  if (navigator.userAgent.includes('Electron/')) return;
   const button = document.getElementById('install-button');
   const standalone = window.matchMedia('(display-mode: standalone)');
   let pendingPrompt;

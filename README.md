@@ -1,6 +1,42 @@
 # Dashboard Mac
 
-Una dashboard locale per ritrovare i progetti nella Home e in `/Applications/MAMP/htdocs`. Richiede Node.js 22 o successivo. Nessun pacchetto da installare, database o servizio esterno.
+Una dashboard locale per ritrovare, aprire e gestire i progetti sul Mac. Cerca nelle cartelle configurate, mostra risorse e porte occupate e permette di avviare i comandi dei progetti. Tutti i dati restano sul computer: non sono richiesti account, database o servizi esterni.
+
+## Requisiti
+
+- macOS 13 o successivo per l’app desktop.
+- Node.js 22.12 o successivo per la versione web, lo sviluppo e la creazione della build. L’app macOS compilata include il proprio runtime.
+- MAMP e VS Code sono facoltativi. Se non usi MAMP, puoi rimuovere la relativa sorgente dalla configurazione.
+- Gli strumenti e le dipendenze dei singoli progetti devono essere installati per poterli avviare.
+
+## Sostieni il progetto
+
+Se Dashboard Mac ti è utile, puoi sostenere lo sviluppo con una donazione volontaria tramite PayPal. Il supporto aiuta a dedicare tempo a nuove funzionalità, correzioni e documentazione.
+
+[Sostieni il progetto con PayPal](https://www.paypal.com/paypalme/michelemarseglia1382)
+
+Puoi contribuire anche segnalando problemi, proponendo miglioramenti o inviando una pull request.
+
+## App macOS autonoma
+
+La versione Electron include Node e un browser: per usare l’app non occorre avviare il Terminale, installare Node o tenere aperto Chrome. Apri **Dashboard Mac.app**; il servizio locale parte automaticamente. Chiudendo l’ultima finestra o usando `⌘ Q`, vengono fermati il servizio e i progetti che l’app ha avviato.
+
+Per creare la build su un Mac Apple Silicon:
+
+```sh
+npm ci
+npm run build
+```
+
+Trovi l’app in `dist/mac-arm64/Dashboard Mac.app`. Puoi aprirla direttamente o trascinarla in **Applicazioni** e mantenerla nel Dock. `npm run build:dmg` crea anche il disco di installazione in `dist/`. Per lo sviluppo desktop usa `npm run desktop`. Node è necessario per sviluppare e creare la build, ma non per eseguire l’app compilata.
+
+L’app salva configurazione, note, comandi e preferenze in `~/Library/Application Support/Dashboard Mac`, fuori dal pacchetto `.app`, quindi una nuova build non li elimina. Al primo avvio copia il `config.json` incluso nella build; successivamente usa la propria copia. **Archivio → Modifica configurazione cartelle…** apre quel file: dopo averlo modificato, premi **Aggiorna progetti**. **Archivio → Apri cartella dati** mostra tutti i dati dell’app.
+
+Per recuperare note e comandi della precedente versione, usa **Archivio → Importa note e comandi…** e scegli la cartella originale `dashboard-mac`. L’app si riavvia, conserva i dati già presenti nella versione desktop e non modifica quelli originali. I comandi importati non vengono eseguiti automaticamente. Preferiti, cronologia, vista e indirizzi salvati nel browser sono separati da quelli dell’app desktop e vanno reimpostati.
+
+Il servizio desktop ascolta solo su `127.0.0.1:4319`, mentre la versione web continua a usare la porta 4317. Se un altro programma occupa la porta 4319, l’app mostra un errore e non si collega a quel programma. Per verifiche isolate sono disponibili gli argomenti `--user-data-dir=/percorso/temporaneo` e `--dashboard-port=0`; quest’ultimo assegna una porta temporanea e non va usato normalmente, perché le preferenze del browser dipendono dalla porta.
+
+Gli script di build generano una versione per Apple Silicon, firmata ad hoc per uso locale. La distribuzione pubblica di un’app firmata e notarizzata richiede una configurazione di firma dedicata. Gli strumenti dei singoli progetti (per esempio npm, PHP o Python) restano necessari per avviare quei progetti: l’app include il runtime della dashboard.
 
 ## Avvio
 
@@ -35,15 +71,35 @@ Preferiti, cronologia e indirizzi personalizzati sono conservati nel browser per
 
 ## Cartelle e indirizzi
 
-Modifica `config.json`, poi premi **Aggiorna progetti**:
+Il file `config.json` contiene una configurazione iniziale generica: Home e cartella standard di MAMP, senza indirizzi di progetti personali.
+
+Per personalizzare la versione web senza pubblicare percorsi e indirizzi, crea una copia locale:
+
+```sh
+cp config.json config.local.json
+```
+
+Modifica `config.local.json` e riavvia il server: se presente, questo file viene usato al posto di `config.json` ed è escluso da Git e dalle build desktop. Le modifiche successive al file selezionato vengono rilette con **Aggiorna progetti**. Nell’app desktop usa **Archivio → Modifica configurazione cartelle…**, che apre la configurazione conservata nella cartella dati dell’app.
+
+Campi disponibili:
 
 - `roots`: sorgenti con `id` univoco, `label`, `path` (supporta `~`), `depth` (massimo 8) e `includeChildren`.
 - `includeChildren: true`: ogni sottocartella diretta è un progetto, utile per `htdocs`.
 - Con `includeChildren: false` vengono cercati indicatori come `.git`, `package.json`, `composer.json`, `index.php`, `index.html`, `pyproject.toml`, `pubspec.yaml` o progetti Xcode.
 - `exclude`: nomi delle cartelle da saltare. Le cartelle nascoste e i collegamenti simbolici vengono sempre saltati.
 - `maxDirectories`: limite totale di cartelle esplorate; un avviso segnala scansioni incomplete.
-- `mampBaseUrl`: indirizzo MAMP predefinito. Imposta l’indirizzo del proprio server locale.
-- `projectUrls`: indirizzi specifici per percorso assoluto. Gli indirizzi impostati nell'interfaccia hanno precedenza.
+- `mampBaseUrl`: indirizzo base del server MAMP, per esempio `http://localhost` oppure `http://localhost:8888`, in base alla propria configurazione.
+- `projectUrls`: mappa facoltativa tra percorsi assoluti e indirizzi dei progetti, vuota nella configurazione iniziale. Gli indirizzi impostati nell’interfaccia hanno precedenza. Per esempio, in `config.local.json`:
+
+```json
+{
+  "projectUrls": {
+    "/Applications/MAMP/htdocs/progetto-demo": "http://localhost:3000"
+  }
+}
+```
+
+L’esempio mostra solo il campo `projectUrls`: gli altri campi della configurazione vanno mantenuti.
 
 La scansione iniziale include la Home fino a quattro livelli, `htdocs` e tutte le sue sottocartelle dirette. Quando riconosce un progetto, non entra nei suoi componenti interni: un monorepo resta una scheda. Le cartelle inaccessibili generano avvisi; per includerle occorre concedere al terminale i permessi macOS necessari. La data di modifica considera la cartella e fino a 100 file del primo livello, non tutte le modifiche ricorsive e neppure l'ultimo commit Git. “Git” indica la presenza del repository, non lo stato delle modifiche.
 

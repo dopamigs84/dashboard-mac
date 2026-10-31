@@ -1,5 +1,6 @@
 import http from 'node:http';
 import { readFile, realpath, stat, access } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
@@ -38,7 +39,7 @@ async function bodyJson(req, limit = 4096) {
   try { return JSON.parse(body); } catch { throw fail(400, 'JSON non valido.'); }
 }
 
-export function createDashboard({ configFile = join(base, 'config.json'), opener = exec, resourceMonitor = createResourceMonitor(), runtimeManager = createRuntimeManager({ storageDir: join(base, '.local') }), portMonitor = createPortMonitor(), projectStore = createProjectStore({ storageDir: join(base, '.local') }), gitReader = createGitReader(), spaceAnalyzer = createSpaceAnalyzer() } = {}) {
+export function createDashboard({ configFile = existsSync(join(base, 'config.local.json')) ? join(base, 'config.local.json') : join(base, 'config.json'), opener = exec, resourceMonitor = createResourceMonitor(), runtimeManager = createRuntimeManager({ storageDir: join(base, '.local') }), portMonitor = createPortMonitor(), projectStore = createProjectStore({ storageDir: join(base, '.local') }), gitReader = createGitReader(), spaceAnalyzer = createSpaceAnalyzer() } = {}) {
   const token = randomBytes(32).toString('hex');
   let catalog;
   let scanning;

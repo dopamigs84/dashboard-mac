@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { once } from 'node:events';
 import { Readable } from 'node:stream';
+import { request as httpRequest } from 'node:http';
 import { readConfig, scan } from '../lib/catalog.mjs';
 import { createDashboard } from '../server.mjs';
 import { createProjectStore } from '../lib/projects.mjs';
@@ -17,7 +18,17 @@ async function client(server, t) {
     await once(server, 'listening');
     t.after(() => new Promise(resolve => server.close(resolve)));
     const base = `http://127.0.0.1:${server.address().port}`;
-    return (path, options) => fetch(base + path, options);
+    // Send the exact supplied Host/Origin headers; fetch may normalize Host.
+    return (path, options = {}) => new Promise((resolve, reject) => {
+      const req = httpRequest(base + path, { method: options.method || 'GET', headers: options.headers }, res => {
+        const chunks = [];
+        res.on('data', chunk => chunks.push(chunk));
+        res.on('error', reject);
+        res.on('end', () => resolve(new Response(chunks.length ? Buffer.concat(chunks) : null, { status: res.statusCode, headers: res.headers })));
+      });
+      req.on('error', reject);
+      req.end(options.body);
+    });
   }
   return (path, options = {}) => new Promise(resolve => {
     const req = Readable.from(options.body ? [Buffer.from(options.body)] : []);

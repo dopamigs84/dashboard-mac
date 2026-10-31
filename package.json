@@ -1,14 +1,43 @@
 {
   "name": "dashboard-mac",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
+  "main": "desktop/main.mjs",
   "description": "Trova e apri i progetti sul tuo Mac, in locale.",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "start": "node server.mjs",
     "dev": "node --watch server.mjs",
+    "desktop": "electron .",
+    "build:icon": "node scripts/build-icon.mjs",
+    "prebuild": "npm run build:icon && install-electron",
+    "build": "electron-builder --mac dir --arm64",
+    "prebuild:dmg": "npm run build:icon && install-electron",
+    "build:dmg": "electron-builder --mac dmg --arm64",
     "test": "node --test test/*.test.mjs",
     "test:http": "DASHBOARD_HTTP_TEST=1 node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "io.github.dashboardmac.app",
+    "productName": "Dashboard Mac",
+    "directories": { "output": "dist" },
+    "files": ["desktop/**/*.mjs", "lib/**/*.mjs", "public/**/*", "server.mjs", "config.json", "package.json"],
+    "asar": true,
+    "electronDist": "node_modules/electron/dist",
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "desktop/assets/dashboard-mac.icns",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "notarize": false
+    },
+    "dmg": { "title": "Dashboard Mac", "artifactName": "Dashboard-Mac-${version}-${arch}.${ext}" }
   }
 }

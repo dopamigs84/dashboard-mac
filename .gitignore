@@ -2,3 +2,15 @@
 .local/
 node_modules/
 coverage/
+dist/
+config.local.json
+.env
+.env.*
+!.env.example
+!.env.sample
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
